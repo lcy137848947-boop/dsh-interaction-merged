@@ -1,6 +1,6 @@
 # dsh-interaction-merged
 
-`0.3.1-beta.14` · MIT · offline · zero dependencies
+`0.3.1-beta.15` · MIT · offline · zero dependencies
 
 One DSH plugin that does **two related jobs in one runtime**:
 
@@ -123,6 +123,23 @@ filtering or task storage:
 
 See [`docs/ENGINEERING-NOTES.md`](docs/ENGINEERING-NOTES.md) for design notes and what is
 *not* verified.
+
+## Documentation
+
+- [`docs/MANUAL.md`](docs/MANUAL.md) — install, configuration, commands, behavior, state file,
+  troubleshooting (including the silent “bundle skipped” failure class).
+- [`docs/AI-ADAPTATION.md`](docs/AI-ADAPTATION.md) — for an AI agent (or a careful human) porting
+  this plugin to another host, language, or user: the judge inventory, symptom → knob table,
+  measurement protocol, localization steps, acceptance checklist, failure table.
+- [`docs/ENGINEERING-NOTES.md`](docs/ENGINEERING-NOTES.md) — design notes and verification status.
+- `scripts/calibrate.mjs` — run a local JSONL corpus through the real judge:
+
+```text
+npm run calibrate -- --corpus scripts/corpus.example.jsonl
+```
+
+It exits non-zero when a labeled case is missed, so it can gate a tuning change. Replace the
+example corpus with your own local shapes; keep it synthetic.
 
 ## Not implemented
 

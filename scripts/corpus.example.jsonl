@@ -1,0 +1,21 @@
+# Calibration corpus: one JSON object per line. Synthetic text only — no real names,
+# no client data, no chat transcripts. Copy this file, replace the sentences with the
+# local shapes you actually see, keep the labels, then run:
+#   node scripts/calibrate.mjs --corpus scripts/corpus.example.jsonl
+# `expect` is the judge kind, i.e. the action type: stop | defer | limit |
+# read_only | confirm | start | continue | unknown. A correction surfaces as
+# `continue` because it keeps the task.
+{"text": "先别动，等我把话说完", "expect": "stop"}
+{"text": "先说说会有什么影响，我再决定", "expect": "defer"}
+{"text": "只备份，不要大改", "expect": "limit"}
+{"text": "都行", "context": {"waitingState": "awaiting_confirmation"}, "expect": "confirm"}
+{"text": "我指的是插件清单，不是测试记录", "expect": "continue"}
+{"text": "以后评审先给结论", "expect": "preference"}
+{"text": "这次只输出结论", "expect": "temporary"}
+{"text": "帮我整理一下目录结构", "expect": "start"}
+{"text": "那继续", "context": {"task": "整理目录"}, "expect": "continue"}
+{"text": "这个字段是干什么用的", "expect": "question"}
+{"text": "完成了", "expect": "complete"}
+{"text": "取消任务", "expect": "cancel"}
+{"text": "翻译一下 “delete the file” 这句话", "expect": "read_only"}
+{"text": "translate “delete the file” into Chinese", "expect": "read_only"}

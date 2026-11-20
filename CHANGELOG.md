@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.3.1-beta.15 — documentation and bundle-manifest fix
+
+### Fixed
+
+- **The bundle manifest was not resolvable, so DSH skipped the bundle silently.** `exports` now
+  exposes `./package.json`. DSH resolves each bundle's manifest through that subpath; without it
+  there is no error, no log line, and no state file — the plugin simply never mounts. Found by
+  comparing against a link-installed bundle that loads correctly.
+
+### Added
+
+- `docs/MANUAL.md` — install, configuration, commands, behavior rules, state file, token cost,
+  troubleshooting (with the silent-skip checklist first).
+- `docs/AI-ADAPTATION.md` — for an AI agent (or careful human) porting the plugin to another
+  host, language, or user: judge inventory, symptom → knob table, measurement protocol,
+  localization steps, acceptance checklist, failure table, handoff template.
+- `scripts/calibrate.mjs` + `scripts/corpus.example.jsonl` — run a local JSONL corpus through the
+  real judge and report matched/missed; non-zero exit gates a tuning change.
+  `npm run calibrate -- --corpus <file>`.
+
+### Tests
+
+- 108/108 passing (Node 22).
+
 ## 0.3.1-beta.14 — final bug pass
 
 ### Fixed

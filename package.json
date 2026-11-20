@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "dsh-interaction-merged",
-  "version": "0.3.1-beta.14",
+  "version": "0.3.1-beta.15",
   "type": "module",
   "description": "One DSH runtime for turn-boundary guard actions and task-state memory: a shared judge, one state file, one prompt assembly hook.",
   "license": "MIT",
@@ -15,10 +15,12 @@
     "prompt-injection"
   ],
   "exports": {
-    ".": "./index.js"
+    ".": "./index.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "calibrate": "node scripts/calibrate.mjs"
   },
   "engines": {
     "node": ">=20"
