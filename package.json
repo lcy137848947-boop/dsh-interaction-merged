@@ -1,0 +1,45 @@
+﻿{
+  "name": "dsh-interaction-merged",
+  "version": "0.3.1-beta.13",
+  "type": "module",
+  "description": "One DSH runtime for turn-boundary guard actions and task-state memory: a shared judge, one state file, one prompt assembly hook.",
+  "license": "MIT",
+  "author": "AI Interaction Toolkit contributors",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "turn-guard",
+    "task-state",
+    "conversation-state",
+    "prompt-injection"
+  ],
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "index.js",
+    "lib/",
+    "cordis.patch.yml",
+    "test/",
+    "scripts/",
+    "docs/",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "PRIVACY.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

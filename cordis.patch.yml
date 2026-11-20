@@ -1,0 +1,10 @@
+﻿# 合并插件：装上后默认启用。
+- insert:
+    - id: dsh-interaction-merged
+      name: dsh-interaction-merged
+      config:
+        enabled: true
+        maxPrefs: 2
+        maxChars: 620
+        maxSessions: 50
+        metrics: true

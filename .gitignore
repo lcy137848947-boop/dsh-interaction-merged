@@ -1,0 +1,12 @@
+node_modules/
+*.key
+protected/
+dist*/
+*.tgz
+_work_guard/
+REPLAY_EVIDENCE*
+state.json
+*.log
+.env
+tmp/
+.DS_Store
