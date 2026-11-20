@@ -1,6 +1,6 @@
 # dsh-interaction-merged
 
-`0.3.1-beta.13` · MIT · offline · zero dependencies
+`0.3.1-beta.14` · MIT · offline · zero dependencies
 
 One DSH plugin that does **two related jobs in one runtime**:
 
@@ -102,7 +102,7 @@ state; hard safety enforcement stays with DSH approvals and sandboxing.
 npm test
 ```
 
-**103/103 passing** on Node 22. The suites cover true two-process concurrent writes, lock
+**108/108 passing** on Node 22. The suites cover true two-process concurrent writes, lock
 recovery, op-id retry, compaction rehydrate, cross-day reconfirmation, schema migration,
 turn-id idempotency under a double assemble, task end by completion / cancellation /
 failure, and a three-way acceptance check (direct message, native question reply, memory
@@ -133,6 +133,10 @@ See [`docs/ENGINEERING-NOTES.md`](docs/ENGINEERING-NOTES.md) for design notes an
   live harness run.
 - Answer detection is heuristic: only an explicit clarification request, or a value-shaped
   reply (path, file name, number, short noun), is treated as the missing material.
+- Repeated answers are appended as “（补充：…）” segments; a very long chain trims the older
+  task text first.
+- Honorifics are stripped with `wakeWords`; a name that is not in the list stays part of the
+  text and can still be read as content.
 
 ## Privacy and security
 

@@ -1,6 +1,6 @@
 ﻿{
   "name": "dsh-interaction-merged",
-  "version": "0.3.1-beta.13",
+  "version": "0.3.1-beta.14",
   "type": "module",
   "description": "One DSH runtime for turn-boundary guard actions and task-state memory: a shared judge, one state file, one prompt assembly hook.",
   "license": "MIT",

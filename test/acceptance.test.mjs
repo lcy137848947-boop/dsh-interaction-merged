@@ -224,6 +224,76 @@ test('澄清状态超过 5 分钟会自己过期，不再永久拦工具', async
   assert.equal(sections.some((section) => section.name === 'itk:clarify'), false)
 })
 
+test('带称呼的“继续”保持原任务', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'merged-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const h = host(join(dir, 'state.json'), { wakeWords: ['阿甲'] })
+  h.inbox('帮我整理清单。')
+  await h.assemble()
+  h.inbox('阿甲，继续。')
+  await h.assemble()
+  assert.match(h.command('itk', '/itk').text, /任务：帮我整理清单/)
+})
+
+test('“哪一列”式追问按等待处理，回答不覆盖任务', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'merged-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const h = host(join(dir, 'state.json'))
+  h.inbox('帮我检查报表。')
+  await h.assemble()
+  h.assistant('请说明要检查哪一列。')
+  h.inbox('C列')
+  await h.assemble()
+  const status = h.command('itk', '/itk').text
+  assert.match(status, /任务：帮我检查报表/)
+  assert.match(status, /补充：C列/)
+})
+
+test('连续追问的回答都挂回原任务', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'merged-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const h = host(join(dir, 'state.json'))
+  h.inbox('帮我检查报表。')
+  await h.assemble()
+  h.assistant('请把文件名发给我。')
+  h.inbox('a.xlsx')
+  await h.assemble()
+  h.assistant('请说明要检查哪一列。')
+  h.inbox('C列')
+  await h.assemble()
+  h.assistant('请说明口径。')
+  h.inbox('按含税')
+  await h.assemble()
+  const status = h.command('itk', '/itk').text
+  assert.match(status, /任务：帮我检查报表/)
+  assert.match(status, /a\.xlsx/)
+  assert.match(status, /C列/)
+  assert.match(status, /按含税/)
+})
+
+test('等待材料时“谢谢”既不进材料也不开新任务', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'merged-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const h = host(join(dir, 'state.json'))
+  h.inbox('帮我检查报表。')
+  await h.assemble()
+  h.assistant('请把文件名发给我。')
+  h.inbox('谢谢')
+  await h.assemble()
+  const status = h.command('itk', '/itk').text
+  assert.match(status, /任务：帮我检查报表/)
+  assert.doesNotMatch(status, /补充：谢谢/)
+})
+
+test('未知子命令报错而不是假装成功', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'merged-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const h = host(join(dir, 'state.json'))
+  const result = h.command('itk', '/itk 状态')
+  assert.equal(result.kind, 'error')
+  assert.match(result.text, /未知子命令/)
+})
+
 test('诊断输出对外部提示块脱敏，raw 才显示原名', async (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'merged-'))
   t.after(() => rmSync(dir, { recursive: true, force: true }))

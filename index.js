@@ -14,6 +14,7 @@ import {
 } from './lib/core.js'
 import { judge } from './lib/judge.js'
 import { createStore } from './lib/store.js'
+import { stripName } from './lib/recognize.js'
 
 const NAME = 'dsh-interaction-merged'
 const MAX_CHARS = 620
@@ -110,6 +111,15 @@ function inferWaiting(text) {
   const value = String(text || '').slice(-500)
   if (!value) return 'ready'
   if (/(请|麻烦)(你)?[^。；;\n]{0,20}(提供|发我|告诉我|给我|贴|补充)|需要你[^。；;\n]{0,20}(提供|确认|补充)/.test(value)) {
+    return 'awaiting_input'
+  }
+  // “请说明要检查哪一列”“这份报告叫什么” also wait for material, even without
+  // a question mark. Missing this made the next reply replace the task.
+  if (/(哪一(?:个|列|行|项|部分)|哪部分|哪个部分|叫什么|什么名字|列名|行号|路径是|名称是)/.test(value)) {
+    return 'awaiting_input'
+  }
+  // “请说明口径”“麻烦再确认一下” are requests for material as well.
+  if (/(?:请|麻烦)(?:你)?\s*(?:先|再)?\s*(?:说明|告诉|确认|补充|提供|列出|给出|回答|选择|指定|发送|上传|发一下)/.test(value)) {
     return 'awaiting_input'
   }
   if (/[?？]\s*$|(要不要|是否|哪一个|哪个|确认|可以吗|好吗|行吗)/.test(value)) {
@@ -211,6 +221,14 @@ export function apply(ctx, config = {}) {
   // While the assistant is waiting for a specific piece of information, a short
   // user message is that piece of information. It must keep the original task
   // and attach the answer instead of replacing the task with the raw value.
+  function awaitingInput(session) {
+    return Boolean(session.pending?.clarify) || session.waitingState === 'awaiting_input'
+  }
+
+  function isAcknowledgement(value) {
+    return /^(?:谢谢|多谢|收到|明白|知道了|了解|好的|好吧|嗯+|ok|thanks?)[!！。…\s]*$/i.test(String(value || '').trim())
+  }
+
   function isAnswerTurn(session, text, decision) {
     const awaiting = Boolean(session.pending?.clarify) || session.waitingState === 'awaiting_input'
     if (!awaiting) return false
@@ -221,6 +239,8 @@ export function apply(ctx, config = {}) {
     // “可以/好的” alone is not the missing material; it needs clarification.
     if (decision.requiresClarification) return false
     if (decision.actions.some((action) => action.type === 'stop' || action.type === 'defer')) return false
+    // Acknowledgements are not the missing material.
+    if (isAcknowledgement(value)) return false
     // An explicit “ask first” state accepts the reply as the answer.
     if (session.pending?.clarify) return true
     // Otherwise only a value-shaped reply counts: path, file name, number, or a
@@ -228,8 +248,7 @@ export function apply(ctx, config = {}) {
     return looksLikeValue(value)
   }
 
-  function looksLikeValue(value) {
-    if (/[\\/]/.test(value)) return true
+  function looksLikeValue(value) {    if (/[\\/]/.test(value)) return true
     if (/\.[A-Za-z0-9]{1,8}$/.test(value)) return true
     if (/\d/.test(value) && value.length <= 40) return true
     if (/(?:帮我|麻烦|请问|请|把|查|换|改|删|打开|执行|做|整理|分析|生成|继续|算了|取消|看看)/.test(value)) return false
@@ -262,6 +281,9 @@ export function apply(ctx, config = {}) {
   }
 
   function observe(agent, text, meta = {}) {
+    // The honorific prefix is address, not content: strip it before both the
+    // judge and the stored task, otherwise “阿甲，继续” becomes a new task.
+    text = stripName(String(text ?? ''), config.wakeWords)
     if (!enabled() || !text) return null
     if (isSubagent(agent)) return null
     const sessionId = sessionIdOf(agent)
@@ -280,6 +302,14 @@ export function apply(ctx, config = {}) {
       wakeWords: config.wakeWords,
     })
     const hasAction = decision.actions.length > 0 || decision.speechActs.includes('preference')
+
+    // A bare “谢谢/收到” while waiting for material is neither the material nor
+    // a new task: leave the state untouched.
+    if (awaitingInput(session) && isAcknowledgement(text)) {
+      store.metrics.observeMs = nowMs() - started
+      log(ctx, 'acknowledgement ignored while waiting for material')
+      return decision
+    }
 
     // A short reply while the helper is waiting for material is the answer to
     // that question, not a new task. Native question replies (source kind
@@ -778,7 +808,7 @@ export function apply(ctx, config = {}) {
 
   function handleCommand(kind, invocation) {
     const sessionId = sessionIdOf(invocation?.agent)
-    const raw = String(invocation?.rawInput || '').trim().replace(/^\/?(itk|guard)\s*/, '')
+    const raw = String(invocation?.rawInput || '').trim().replace(/^\/?(itk|guard)\s*/, '').replace(/\s+/g, ' ').trim()
     if (kind === 'guard') {
       if (raw === 'off' || raw === 'on') {
         const result = store.setGuardEnabled(raw === 'on')
@@ -840,6 +870,12 @@ export function apply(ctx, config = {}) {
       return { kind: 'success', text: `已用新偏好取代 ${id}：${result.pref.id}（范围：${result.pref.scope}）` }
     }
     if (raw === 'why' || raw === 'why raw') return { kind: 'success', text: whyText(sessionId, { reveal: raw === 'why raw' }) }
+    if (raw !== '' && raw !== 'status') {
+      return {
+        kind: 'error',
+        text: `未知子命令：${raw}\n用法：/itk [prefs | forget <id> | replace <id> <规则> | on | off | why | why raw]`,
+      }
+    }
     const session = readSession(sessionId)
     return {
       kind: 'success',

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.1-beta.14 — final bug pass
+
+### Fixed
+
+- **A wake word broke the task state machine.** “阿甲，继续。” was stored as a new task because
+  only the guard stripped honorifics. The prefix is now stripped before both the judge and
+  storage, so “继续” keeps the current task when the user addresses the assistant by name.
+- **Assistant questions without a question mark were not treated as waiting.**
+  “请说明要检查哪一列”“请说明口径” left the session in `ready`, so the next reply replaced the
+  task. Requests introduced by 请/麻烦 (说明/告诉/确认/补充/提供/列出/给出/回答/选择/指定/发送/
+  上传) and 哪一…/列名/行号/路径是/名称是 now enter `awaiting_input`.
+- **Acknowledgements polluted the task.** While waiting for material, “谢谢/收到/明白/好的” was
+  appended as “（补充：谢谢）”. It is now ignored: neither material nor a new task.
+- **Command parsing silently fell back to status.** Extra whitespace (`/itk why  raw`) and
+  unknown subcommands (`/itk 状态`) returned the status page instead of doing what was asked;
+  whitespace is normalised and unknown subcommands now return an error with usage.
+
+### Tests
+
+- 108/108 passing (Node 22).
+
 ## 0.3.1-beta.13 — review fixes
 
 ### Fixed

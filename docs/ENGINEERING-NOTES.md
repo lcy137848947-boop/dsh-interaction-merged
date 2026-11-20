@@ -93,12 +93,17 @@ A pending clarification is state, not a one-shot hint:
   ends, or after five minutes of inactivity.
 
 The answer path itself is deliberately strict: an explicit clarification request accepts the
-reply, otherwise only a value-shaped reply (path, file name, number, short noun) is treated
-as the missing material. A new instruction such as “换个方案” stays a normal turn.
+reply; a bare acknowledgement (“谢谢/收到/明白/好的”) is ignored entirely — it is neither
+material nor a new task; otherwise only a value-shaped reply (path, file name, number, short
+noun) is treated as the missing material. A new instruction such as “换个方案” stays a normal
+turn.
+
+Honorifics listed in `wakeWords` are stripped before judging **and** before storing the task.
+Without that, “阿甲，继续。” became a brand-new task and the original task was lost.
 
 ## Verification status
 
-- 103/103 offline tests on Node 22 (`npm test`, i.e. `node --test` discovery).
+- 108/108 offline tests on Node 22 (`npm test`, i.e. `node --test` discovery).
 - Node 20 is declared in `engines` but was not run here; the concurrency suite can flake on a
   loaded machine because it spawns real child processes.
 - Unit-level simulation of compaction and session-id changes; a live DSH compaction run
