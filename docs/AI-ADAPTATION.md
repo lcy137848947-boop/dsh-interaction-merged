@@ -124,6 +124,12 @@ Rules of thumb:
 Core does **not** strip wake words. `index.js` strips the prefix before calling the judge, so keep
 that order; otherwise “阿甲，继续” becomes a new task.
 
+`session.correction` records the turn that set it (`at`). The runtime clears it on completion,
+cancellation, stop, and task start. If the target host needs a hard bound as well, add one:
+store `at` (already there), skip rendering `itk:correction` when
+`session.turn - session.correction.at > N`, and add a test proving the correction stops applying
+— a remembered correction without an expiry is how a guard becomes a new drift source.
+
 ### 4.3 Runtime policy — `index.js`
 
 | Symbol | Decides | Symptom when wrong |
@@ -208,6 +214,14 @@ locale:
   the guard is disabled in config).
 
 ## 7. Change protocol (do not skip)
+
+0. **Do not let the plugin become a new drift source.** Its value is that judgment stays local,
+   it calls no extra model, and it ships offline tests and switches (`/itk on|off`,
+   `/guard on|off`). Keep those properties when adapting: prefer tightening a local rule over
+   adding a model call, keep the offline suite green, and keep every switch working.
+   Every remembered correction needs an **expiry condition** — task end, turn count, or explicit
+   revocation. A temporary fix from last week must not become this week's standing offset; when
+   you add a correction rule, say in one line when it stops applying and test that it does.
 
 1. One rule group per change.
 2. Positive + near-miss negative test for every new pattern.

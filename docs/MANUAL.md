@@ -115,6 +115,10 @@ and the in-memory switch is rolled back instead of pretending success.
    question reply (`user-question-reply`) does count as the user's answer.
 6. **Writes are lock-serialised and merged field by field** against the latest disk snapshot, so
    two processes editing different sessions or preferences do not overwrite each other.
+7. **A correction is scoped, never standing.** It is cleared when the task ends (completion,
+   cancellation, failure), when a new task starts, and on an explicit stop; it is never promoted
+   to a standing preference. A temporary correction must not survive as the next task's default
+   — that is exactly how a guard turns into a new source of drift.
 
 ## 6. State file
 
